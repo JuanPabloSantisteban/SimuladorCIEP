@@ -2,7 +2,7 @@
 *!***                                    ****
 *!***    Poblacion y defunciones         ****
 *!***    Bases: CONAPO 1950-2070         ****
-*!***    Autor: Ricardo                  ****
+*!***    Autor: Ricardo + Juan Pablo     ****
 *!***    Fecha: 20/04/2024               ****
 *!***                                    ****
 *!***    Sintaxis:                       ****
