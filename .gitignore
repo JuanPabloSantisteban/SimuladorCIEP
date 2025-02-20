@@ -1,7 +1,9 @@
 **/users/**
-**/SIM/**
+**/01_raw/**
+**/03_temp/**
+**/04_master/**
+**/05_graphs/**
 **/v6/**
+*.stswp
 .DS_Store
 Icon?
-~SIM.do.stswp
-*.stswp

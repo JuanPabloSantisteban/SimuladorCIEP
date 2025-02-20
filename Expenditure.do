@@ -42,9 +42,9 @@ else {
 
 
 ** 0.1 Directorios y log files **
-capture mkdir "`c(sysdir_personal)'/SIM/`=anioenigh'/"
 capture log close expenditures
-log using "`c(sysdir_personal)'/SIM/`=anioenigh'/expenditures.smcl", replace name(expenditures)
+capture mkdir "`c(sysdir_site)'/03_temp/`=anioenigh'"
+log using "`c(sysdir_site)'/03_temp/`=anioenigh'/expenditures.smcl", replace name(expenditures)
 
 
 ** 0.2 Texto introductorio **
@@ -94,15 +94,15 @@ local pobtotNacional = r(StatTotal)[1,1]
 ***  2. DATOS MICROECONóMICOS  ***
 ***                            ***
 **********************************
-capture confirm file "`c(sysdir_personal)'/SIM/`=anioenigh'/preconsumption.dta"
-if _rc != 0 {
-*if _rc == 0 {
+capture confirm file "`c(sysdir_site)'/03_temp/`=anioenigh'/preconsumption.dta"
+*if _rc != 0 {
+if _rc == 0 {
 
 	** 2.1. Base de datos de gastos de los hogares **
-	use "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/gastospersona.dta", clear
-	append using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/gastohogar.dta"
-	append using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/gastotarjetas.dta"
-	append using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/erogaciones.dta"
+	use "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/gastospersona.dta", clear
+	append using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/gastohogar.dta"
+	append using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/gastotarjetas.dta"
+	append using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/erogaciones.dta"
 
 
 	** 2.2. Gasto anual **
@@ -112,8 +112,8 @@ if _rc != 0 {
 
 
 	** 2.3. Variables sociodemograficas **
-	merge m:1 (folioviv foliohog) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor) update replace
-	merge m:1 (folioviv) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/vivienda.dta", keepus(ubica_geo tenencia) nogen update replace
+	merge m:1 (folioviv foliohog) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor) update replace
+	merge m:1 (folioviv) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/vivienda.dta", keepus(ubica_geo tenencia) nogen update replace
 	capture rename factor_hog factor
 
 
@@ -146,14 +146,14 @@ if _rc != 0 {
 
 
 	** 2.7. Unión de claves de IVA y IEPS **
-	merge m:1 (clave) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/clave_iva.dta", ///
+	merge m:1 (clave) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/clave_iva.dta", ///
 		nogen keepus(descripcion `claveiva' clase_de_actividad*) keep(matched master)
 	encode iva201, gen(tiva)
 	compress
 	tempfile pre_iva
 	save `pre_iva'
 
-	use "`c(sysdir_site)'../BasesCIEP/INEGI/Censo Economico/2019/censo_eco.dta", clear
+	use "`c(sysdir_site)'/01_raw/censo_eco.dta", clear
 	/* a218a: Participación de la prestación de servicios profesionales, científicos y 
 	técnicos en el total de ingresos por suministro de bienes y servicios: Porcentaje 
 	de los ingresos a valor de venta que obtuvo la unidad económica por la prestación 
@@ -200,7 +200,7 @@ if _rc != 0 {
 
 	** 2.8. Unión de censo económico **
 	forvalues k=1(1)6 {
-		use "`c(sysdir_site)'../BasesCIEP/INEGI/Censo Economico/2019/censo_eco.dta", clear
+		use "`c(sysdir_site)'/01_raw/censo_eco.dta", clear
 		g num = length(codigo)
 		drop if num != 6
 		keep if id_estrato == .
@@ -337,19 +337,19 @@ if _rc != 0 {
 		4 "Taba" /// Tabaco
 		5 "Vest" /// Prendas de vestir
 		6 "Calz" /// Calzado
-		7 "Alqu" /// Alquileres y vivienda
+		7 "AlojT" /// Alquileres y vivienda
 		8 "Agua" /// Agua
 		9 "Elec" /// Electricidad
-		10 "Hoga" /// Artículos para el hogar
-		11 "Salu" /// Salud
+		10 "HogaT" /// Artículos para el hogar
+		11 "SaluT" /// Salud
 		12 "Vehi" /// Adquisición de vehículos
 		13 "FTra" /// Transporte personal
 		14 "STra" /// Servicios de transporte
-		15 "Comu" /// Comunicaciones
-		16 "Recr" /// Recreación y cultura
-		17 "Educ" /// Educación
-		18 "Rest" /// Restaurantes y hoteles
-		19 "Dive" // Otros diversos
+		15 "ComuT" /// Comunicaciones
+		16 "RecrT" /// Recreación y cultura
+		17 "EducT" /// Educación
+		18 "RestT" /// Restaurantes y hoteles
+		19 "DiveT" // Otros diversos
 	label values categ categ
 
 
@@ -421,6 +421,7 @@ if _rc != 0 {
 	replace cantidad = cantidad*4 if frecuencia == "4"
 	replace cantidad = 1 if frecuencia == "5" | frecuencia == "6" 
 	replace cantidad = 1 if frecuencia == "0" | frecuencia == ""
+	replace cantidad = 1 if gasto_anual > 0 & cantidad == 0
 
 	* Educación *
 	replace cantidad = 1 if letra == "E" & (num >= 1 & num <= 7) //& publica == 0
@@ -437,10 +438,10 @@ if _rc != 0 {
 	sort folioviv foliohog numren clave
 
 	if `c(version)' > 13.1 {
-		saveold "`c(sysdir_personal)'/SIM/`=anioenigh'/preconsumption.dta", replace version(13)
+		saveold "`c(sysdir_site)'/03_temp/`=anioenigh'/preconsumption.dta", replace version(13)
 	}
 	else {
-		save "`c(sysdir_personal)'/SIM/`=anioenigh'/preconsumption.dta", replace
+		save "`c(sysdir_site)'/03_temp/`=anioenigh'/preconsumption.dta", replace
 	}
 
 
@@ -450,10 +451,10 @@ if _rc != 0 {
 	collapse (sum) deduc_*, by(folioviv foliohog numren)
 
 	if `c(version)' > 13.1 {
-		saveold "`c(sysdir_personal)'/SIM/`=anioenigh'/deducciones.dta", replace version(13)
+		saveold "`c(sysdir_site)'/03_temp/`=anioenigh'/deducciones.dta", replace version(13)
 	}
 	else {
-		save "`c(sysdir_personal)'/SIM/`=anioenigh'/deducciones.dta", replace
+		save "`c(sysdir_site)'/03_temp/`=anioenigh'/deducciones.dta", replace
 	}
 }
 
@@ -466,13 +467,13 @@ if _rc != 0 {
 ***  3. Integración consumo de hogares + individuos  ***
 ***                                                  ***
 ********************************************************
-foreach categ in categ categ_iva categ_ieps {
-	capture confirm file "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_`categ'_pc.dta"
-	if _rc != 0 {
-	*if _rc == 0 {
+foreach categ in categ /*categ_iva categ_ieps*/ {
+	capture confirm file "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_`categ'_pc.dta"
+	*if _rc != 0 {
+	if _rc == 0 {
 
 		** 3.1 Consumo de los individuos **
-		use "`c(sysdir_personal)'/SIM/`=anioenigh'/preconsumption.dta", clear
+		use "`c(sysdir_site)'/03_temp/`=anioenigh'/preconsumption.dta", clear
 		drop if gasto_anual == 0 | numren == ""
 		collapse (sum) gas_ind=gasto_anual cant_ind=cantidad (mean) proporcion, by(folioviv foliohog numren `categ')
 
@@ -496,7 +497,7 @@ foreach categ in categ categ_iva categ_ieps {
 
 
 		** 3.2 Consumo de los hogares **
-		use "`c(sysdir_personal)'/SIM/`=anioenigh'/preconsumption.dta", clear
+		use "`c(sysdir_site)'/03_temp/`=anioenigh'/preconsumption.dta", clear
 		drop if gasto_anual == 0 | numren != ""
 		collapse (sum) gas_hog=gasto_anual cant_hog=cantidad (mean) proporcion, by(folioviv foliohog `categ')
 
@@ -517,16 +518,22 @@ foreach categ in categ categ_iva categ_ieps {
 
 
 		** 3.3 Consumo de los hogares + individuos **
-		merge 1:m (folioviv foliohog) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/poblacion.dta", nogen keepus(numren edad sexo)
-		merge 1:1 (folioviv foliohog numren) using `gastoindividuos', nogen keepus(*_ind* proporcion*)
-		merge m:1 (folioviv foliohog) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor)
-		*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_personal)'/SIM/`=anioenigh'/households.dta", nogen keepus(decil)
+		merge 1:m (folioviv foliohog) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/poblacion.dta", nogen keepus(numren edad sexo)
+		merge m:1 (folioviv foliohog) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor)
 		egen tot_integ = count(factor), by(folioviv foliohog)
+		
+		foreach k of varlist *hog* {
+			if "`k'" == "foliohog" continue
+			replace `k' = `k'/tot_integ
+		}
+
+		merge 1:1 (folioviv foliohog numren) using `gastoindividuos', nogen keepus(*_ind* proporcion*)
+		*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'/04_master/`=anioenigh'/households.dta", nogen keepus(decil)
 
 		** 3.4 Gasto per cápita **
 		noisily di in g `"`categs'"'
 		foreach k of local categs {
-		*foreach k in Educ {
+		*foreach k in Vest {
 			local k = strtoname("`k'")
 			foreach vars in cant_ gas_ {
 				if "`vars'" == "gas_" {
@@ -541,60 +548,72 @@ foreach categ in categ categ_iva categ_ieps {
 				if _rc != 0 {
 					g `vars'hog`k' = 0
 				}
+				*noisily tabstat `vars'hog`k' [fw=factor], stat(sum) f(%20.0fc)
 
 				* Outliers *
-				tabstat `vars'hog`k' if `vars'hog`k' != 0, stat(p99 p95) save
-				g hogar_outlier = 1 if `vars'hog`k' >= r(StatTotal)[1,1] & r(StatTotal)[1,1] != r(StatTotal)[2,1]
+				*tabstat `vars'hog`k' if `vars'hog`k' != 0, stat(p99 p95) save
+				*g hogar_outlier = 1 if `vars'hog`k' >= r(StatTotal)[1,1] & r(StatTotal)[1,1] != r(StatTotal)[2,1]
 
 				* Gasto por individuo *
 				capture replace `vars'ind`k' = 0 if `vars'ind`k' == .
 				if _rc != 0 {
 					g `vars'ind`k' = 0
 				}
-				
+				*noisily tabstat `vars'ind`k' [fw=factor], stat(sum) f(%20.0fc)
+
 				* Outliers *
 				*tabstat `vars'ind`k' if `vars'ind`k' != 0, stat(p99 p95) save
 				*g ind_outlier = 1 if `vars'ind`k' >= r(StatTotal)[1,1] & r(StatTotal)[1,1] != r(StatTotal)[2,1]
 
-				g `vars'pc_`k' = `vars'hog`k'/tot_integ //+ `vars'ind`k'
+				g `vars'pc_`k' = `vars'hog`k' //+ `vars'ind`k'
 				local label = subinstr("`title' per cápita en `k'","_"," ",.)
 				label var `vars'pc_`k' "`label'"
 
 				* Perfil original *
-				tempvar `vars'pc_`k'
-				g ``vars'pc_`k'' = `vars'pc_`k'
-				label var ``vars'pc_`k'' "`title' per cápita en `k' (original)"
-				*noisily Perfiles ``vars'pc_`k'' [fw=factor] if ``vars'pc_`k'' != 0 & hogar_outlier == . & ind_outlier == ., aniope(`=anioenigh')
+				*tempvar `vars'pc_`k'
+				*g ``vars'pc_`k'' = `vars'pc_`k'
+				*label var ``vars'pc_`k'' "`title' per cápita en `k' (original)"
+				*noisily Perfiles ``vars'pc_`k'' [fw=factor] ///
+					if ``vars'pc_`k'' != 0 /*& hogar_outlier == . & ind_outlier == .*/, aniope(`=anioenigh')
 
 				* Iteraciones *
 				noisily di in y "`k': " _cont
-				local salto = 1
-				forvalues iter=1(1)25 {
+				local salto = 3
+				forvalues iter=1(1)10 {
 					noisily di in w "`iter' " _cont
 					forvalues edades=0(`salto')109 {
 						forvalues sexos=1(1)2 {
-							capture tabstat `vars'pc_`k' [fw=factor] if (edad >= `edades' & edad <= `edades'+`salto'-1) & sexo == "`sexos'", stat(mean) f(%20.0fc) save
+							capture tabstat `vars'pc_`k' [fw=factor] ///
+								if (edad >= `edades' & edad <= `edades'+`salto'-1) ///
+								& sexo == "`sexos'" ///
+								, stat(mean) f(%20.0fc) save
 							if _rc != 0 {
 								local valor = 0
 							}
 							else {
 								local valor = r(StatTotal)[1,1]
 							}
-							replace `vars'pc_`k' = `valor' if (edad >= `edades' & edad <= `edades'+`salto'-1) & sexo == "`sexos'"
+							replace `vars'pc_`k' = round(`valor',.01) ///
+								if (edad >= `edades' & edad <= `edades'+`salto'-1) & sexo == "`sexos'"
+							replace `vars'pc_`k' = .01 ///
+								if `vars'pc_`k' == 0
 						}
 					}
-					egen equivalencia`k' = sum(`vars'pc_`k'), by(folioviv foliohog)
-					replace `vars'pc_`k' = `vars'hog`k'*`vars'pc_`k'/equivalencia`k'
-					drop equivalencia`k'
+					egen equivalencias`k' = sum(`vars'pc_`k'), by(folioviv foliohog)
+					replace `vars'pc_`k' = `vars'hog`k'*tot_integ*`vars'pc_`k'/equivalencias`k'
+					drop equivalencias`k'
 				}
-				replace `vars'pc_`k' = 0 if `vars'pc_`k' == .
 				replace `vars'pc_`k' = `vars'pc_`k' + `vars'ind`k'
-				*noisily Perfiles `vars'pc_`k' [fw=factor] if `vars'pc_`k' != 0 & hogar_outlier == . & ind_outlier == ., aniope(`=anioenigh') title(`title' per cápita en `k')
-				capture g precio_`k' = gas_pc_`k'/cant_pc_`k'
-				drop *outlier
+				*noisily tabstat `vars'pc_`k' `vars'hog`k' `vars'ind`k' [fw=factor], stat(sum) f(%20.0fc)
+				
+				*noisily Perfiles `vars'pc_`k' [fw=factor] ///
+					if `vars'pc_`k' != 0 /*& hogar_outlier == . & ind_outlier == .*/, aniope(`=anioenigh') ///
+					title(`title' per cápita en `k')
+				*capture g precio_`k' = gas_pc_`k'/cant_pc_`k'
+				*drop *outlier
 			}
 			noisily di
-			tabstat precio_`k' gas_pc_`k' cant_pc_`k' [fw=factor], stat(mean) f(%10.2fc)
+			*noisily tabstat precio_`k' gas_pc_`k' cant_pc_`k' [fw=factor] if cant_pc_`k' > 0.01, stat(mean) f(%10.2fc)
 		}
 
 		** 3.5 Coeficientes de consumo por edades **
@@ -606,12 +625,8 @@ foreach categ in categ categ_iva categ_ieps {
 		capture drop __*
 		compress
 		sort folioviv foliohog numren
-		if `c(version)' > 13.1 {
-			saveold "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_`categ'_pc.dta", replace version(13)
-		}
-		else {
-			save "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_`categ'_pc.dta", replace
-		}
+		capture mkdir "`c(sysdir_site)'/04_master/`=anioenigh'"
+		save "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_`categ'_pc.dta", replace
 	}
 }
 
@@ -624,9 +639,9 @@ foreach categ in categ categ_iva categ_ieps {
 ***  4. Aggregated values  ***
 ***                        ***
 ******************************
-use "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_categ_pc.dta", replace
-merge m:1 (folioviv foliohog) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor)
-*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'../BasesCIEP/INEGI/CONEVAL/2022/Base final/pobreza_20.dta", nogen keepus(decil)
+use "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_categ_pc.dta", replace
+merge m:1 (folioviv foliohog) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor)
+*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'/01_raw/CONEVAL/2022/Base final/pobreza_20.dta", nogen keepus(decil)
 capture rename factor_hog factor
 order folioviv foliohog numren
 drop *_hog* *_ind*
@@ -639,7 +654,7 @@ local gini_gasto_pc = r(gini_gasto_pc)
 scalar ginigastopc = `gini_gasto_pc'
 
 scalar MTot = 0
-foreach k in Alim BebN BebA Taba Vest Calz Alqu Agua Elec Hoga Salu Vehi FTra STra Comu Recr Educ Rest Dive {
+foreach k in Alim BebN BebA Taba Vest Calz AlojT Agua Elec HogaT SaluT Vehi FTra STra ComuT RecrT EducT RestT DiveT {
 	if "`k'" == "Alim" {
 		label var gas_pc_Alim "Alimentos"
 	}
@@ -658,8 +673,8 @@ foreach k in Alim BebN BebA Taba Vest Calz Alqu Agua Elec Hoga Salu Vehi FTra ST
 	if "`k'" == "Calz" {
 		label var gas_pc_Calz "Calzado"
 	}
-	if "`k'" == "Alqu" {
-		label var gas_pc_Alqu "Alquileres y vivienda"
+	if "`k'" == "AlojT" {
+		label var gas_pc_AlojT "Alquileres y vivienda"
 	}
 	if "`k'" == "Agua" {
 		label var gas_pc_Agua "Agua"
@@ -667,11 +682,11 @@ foreach k in Alim BebN BebA Taba Vest Calz Alqu Agua Elec Hoga Salu Vehi FTra ST
 	if "`k'" == "Elec" {
 		label var gas_pc_Elec "Electricidad"
 	}
-	if "`k'" == "Hoga" {
-		label var gas_pc_Hoga "Artículos para el hogar"
+	if "`k'" == "HogaT" {
+		label var gas_pc_HogaT "Artículos para el hogar"
 	}
-	if "`k'" == "Salu" {
-		label var gas_pc_Salu "Salud"
+	if "`k'" == "SaluT" {
+		label var gas_pc_SaluT "Salud"
 	}
 	if "`k'" == "Vehi" {
 		label var gas_pc_Vehi "Adquisición de vehículos"
@@ -682,20 +697,20 @@ foreach k in Alim BebN BebA Taba Vest Calz Alqu Agua Elec Hoga Salu Vehi FTra ST
 	if "`k'" == "STra" {
 		label var gas_pc_STra "Servicios de transporte"
 	}
-	if "`k'" == "Comu" {
-		label var gas_pc_Comu "Comunicaciones"
+	if "`k'" == "ComuT" {
+		label var gas_pc_ComuT "Comunicaciones"
 	}
-	if "`k'" == "Recr" {
-		label var gas_pc_Recr "Recreación y cultura"
+	if "`k'" == "RecrT" {
+		label var gas_pc_RecrT "Recreación y cultura"
 	}
-	if "`k'" == "Educ" {
-		label var gas_pc_Educ "Educación"
+	if "`k'" == "EducT" {
+		label var gas_pc_EducT "Educación"
 	}
-	if "`k'" == "Rest" {
-		label var gas_pc_Rest "Restaurantes y hoteles"
+	if "`k'" == "RestT" {
+		label var gas_pc_RestT "Restaurantes y hoteles"
 	}
-	if "`k'" == "Dive" {
-		label var gas_pc_Dive "Otros diversos"
+	if "`k'" == "DiveT" {
+		label var gas_pc_DiveT "Otros diversos"
 	}
 	tabstat gas_pc_`k' [aw=factor], stat(sum) f(%20.0fc) save
 	scalar M`k' = r(StatTotal)[1,1]
@@ -749,10 +764,10 @@ noisily di in g "  (+) Calzado " ///
 	_col(66) %7.3fc Calz/PIB*100 ///
 	_col(77) %6.1fc (MCalz/Calz-1)*100 "%"
 noisily di in g "  (+) Vivienda " ///
-	_col(44) in y "(" %5.3fc giniAlqu ")" ///
-	_col(55) in y %7.3fc MAlqu/PIB*100 ///
-	_col(66) %7.3fc Alqu/PIB*100 ///
-	_col(77) %6.1fc (MAlqu/Alqu-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniAlojT ")" ///
+	_col(55) in y %7.3fc MAlojT/PIB*100 ///
+	_col(66) %7.3fc AlojT/PIB*100 ///
+	_col(77) %6.1fc (MAlojT/AlojT-1)*100 "%"
 noisily di in g "  (+) Agua " ///
 	_col(44) in y "(" %5.3fc giniAgua ")" ///
 	_col(55) in y %7.3fc MAgua/PIB*100 ///
@@ -764,15 +779,15 @@ noisily di in g "  (+) Electricidad " ///
 	_col(66) %7.3fc Elec/PIB*100 ///
 	_col(77) %6.1fc (MElec/Elec-1)*100 "%"
 noisily di in g "  (+) Artículos para el hogar " ///
-	_col(44) in y "(" %5.3fc giniHoga ")" ///
-	_col(55) in y %7.3fc MHoga/PIB*100 ///
-	_col(66) %7.3fc Hoga/PIB*100 ///
-	_col(77) %6.1fc (MHoga/Hoga-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniHogaT ")" ///
+	_col(55) in y %7.3fc MHogaT/PIB*100 ///
+	_col(66) %7.3fc HogaT/PIB*100 ///
+	_col(77) %6.1fc (MHogaT/HogaT-1)*100 "%"
 noisily di in g "  (+) Salud " ///
-	_col(44) in y "(" %5.3fc giniSalu ")" ///
-	_col(55) in y %7.3fc MSalu/PIB*100 ///
-	_col(66) %7.3fc Salu/PIB*100 ///
-	_col(77) %6.1fc (MSalu/Salu-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniSaluT ")" ///
+	_col(55) in y %7.3fc MSaluT/PIB*100 ///
+	_col(66) %7.3fc SaluT/PIB*100 ///
+	_col(77) %6.1fc (MSaluT/SaluT-1)*100 "%"
 noisily di in g "  (+) Aquisición de vehículos " ///
 	_col(44) in y "(" %5.3fc giniVehi ")" ///
 	_col(55) in y %7.3fc MVehi/PIB*100 ///
@@ -789,30 +804,30 @@ noisily di in g "  (+) Servicios de STransporte " ///
 	_col(66) %7.3fc STra/PIB*100 ///
 	_col(77) %6.1fc (MSTra/STra-1)*100 "%"
 noisily di in g "  (+) Comunicaciones " ///
-	_col(44) in y "(" %5.3fc giniComu ")" ///
-	_col(55) in y %7.3fc MComu/PIB*100 ///
-	_col(66) %7.3fc Comu/PIB*100 ///
-	_col(77) %6.1fc (MComu/Comu-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniComuT ")" ///
+	_col(55) in y %7.3fc MComuT/PIB*100 ///
+	_col(66) %7.3fc ComuT/PIB*100 ///
+	_col(77) %6.1fc (MComuT/ComuT-1)*100 "%"
 noisily di in g "  (+) Recreación y cultura " ///
-	_col(44) in y "(" %5.3fc giniRecr ")" ///
-	_col(55) in y %7.3fc MRecr/PIB*100 ///
-	_col(66) %7.3fc Recr/PIB*100 ///
-	_col(77) %6.1fc (MRecr/Recr-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniRecrT ")" ///
+	_col(55) in y %7.3fc MRecrT/PIB*100 ///
+	_col(66) %7.3fc RecrT/PIB*100 ///
+	_col(77) %6.1fc (MRecrT/RecrT-1)*100 "%"
 noisily di in g "  (+) Educación " ///
-	_col(44) in y "(" %5.3fc giniEduc ")" ///
-	_col(55) in y %7.3fc MEduc/PIB*100 ///
-	_col(66) %7.3fc Educ/PIB*100 ///
-	_col(77) %6.1fc (MEduc/Educ-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniEducT ")" ///
+	_col(55) in y %7.3fc MEducT/PIB*100 ///
+	_col(66) %7.3fc EducT/PIB*100 ///
+	_col(77) %6.1fc (MEducT/EducT-1)*100 "%"
 noisily di in g "  (+) Restaurantes y hoteles" ///
-	_col(44) in y "(" %5.3fc giniRest ")" ///
-	_col(55) in y %7.3fc MRest/PIB*100 ///
-	_col(66) %7.3fc Rest/PIB*100 ///
-	_col(77) %6.1fc (MRest/Rest-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniRestT ")" ///
+	_col(55) in y %7.3fc MRestT/PIB*100 ///
+	_col(66) %7.3fc RestT/PIB*100 ///
+	_col(77) %6.1fc (MRestT/RestT-1)*100 "%"
 noisily di in g "  (+) Bienes y servicios diveresos " ///
-	_col(44) in y "(" %5.3fc giniDive ")" ///
-	_col(55) in y %7.3fc MDive/PIB*100 ///
-	_col(66) %7.3fc Dive/PIB*100 ///
-	_col(77) %6.1fc (MDive/Dive-1)*100 "%"
+	_col(44) in y "(" %5.3fc giniDiveT ")" ///
+	_col(55) in y %7.3fc MDiveT/PIB*100 ///
+	_col(66) %7.3fc DiveT/PIB*100 ///
+	_col(77) %6.1fc (MDiveT/DiveT-1)*100 "%"
 noisily di in g _dup(84) "-"
 noisily di in g "{bf:  (=) Total " ///
 	_col(44) in y "(" %5.3fc ginigastopc ")" ///
@@ -823,7 +838,7 @@ noisily di in g "{bf:  (=) Total " ///
 
 ** 4.1. Factores de escala  **
 scalar MMTot = 0
-foreach k in Alim BebN BebA Taba Vest Calz Alqu Agua Elec Hoga Salu Vehi FTra STra Comu Recr Educ Rest Dive {
+foreach k in Alim BebN BebA Taba Vest Calz AlojT Agua Elec HogaT SaluT Vehi FTra STra ComuT RecrT EducT RestT DiveT {
 	scalar TT`k' = (M`k'/`k')^(-1)
 	scalar Dif`k' = ((M`k'/`k')-1)*100
 	replace gas_pc_`k' = gas_pc_`k'*scalar(TT`k')
@@ -869,9 +884,9 @@ noisily di in g "  (+) Calzado " ///
 	_col(66) %7.3fc Calz/PIB*100 ///
 	_col(77) %6.1fc (MMCalz/Calz-1)*100
 noisily di in g "  (+) Vivienda " ///
-	_col(44) in y %20.3fc MMAlqu/PIB*100 ///
-	_col(66) %7.3fc Alqu/PIB*100 ///
-	_col(77) %6.1fc (MMAlqu/Alqu-1)*100
+	_col(44) in y %20.3fc MMAlojT/PIB*100 ///
+	_col(66) %7.3fc AlojT/PIB*100 ///
+	_col(77) %6.1fc (MMAlojT/AlojT-1)*100
 noisily di in g "  (+) Agua " ///
 	_col(44) in y %20.3fc MMAgua/PIB*100 ///
 	_col(66) %7.3fc Agua/PIB*100 ///
@@ -881,13 +896,13 @@ noisily di in g "  (+) Electricidad " ///
 	_col(66) %7.3fc Elec/PIB*100 ///
 	_col(77) %6.1fc (MMElec/Elec-1)*100
 noisily di in g "  (+) Artículos para el hogar " ///
-	_col(44) in y %20.3fc MMHoga/PIB*100 ///
-	_col(66) %7.3fc Hoga/PIB*100 ///
-	_col(77) %6.1fc (MMHoga/Hoga-1)*100
+	_col(44) in y %20.3fc MMHogaT/PIB*100 ///
+	_col(66) %7.3fc HogaT/PIB*100 ///
+	_col(77) %6.1fc (MMHogaT/HogaT-1)*100
 noisily di in g "  (+) Salud " ///
-	_col(44) in y %20.3fc MMSalu/PIB*100 ///
-	_col(66) %7.3fc Salu/PIB*100 ///
-	_col(77) %6.1fc (MMSalu/Salu-1)*100
+	_col(44) in y %20.3fc MMSaluT/PIB*100 ///
+	_col(66) %7.3fc SaluT/PIB*100 ///
+	_col(77) %6.1fc (MMSaluT/SaluT-1)*100
 noisily di in g "  (+) Aquisición de vehículos " ///
 	_col(44) in y %20.3fc MMVehi/PIB*100 ///
 	_col(66) %7.3fc Vehi/PIB*100 ///
@@ -901,25 +916,25 @@ noisily di in g "  (+) Servicios de STransporte " ///
 	_col(66) %7.3fc STra/PIB*100 ///
 	_col(77) %6.1fc (MMSTra/STra-1)*100
 noisily di in g "  (+) Comunicaciones " ///
-	_col(44) in y %20.3fc MMComu/PIB*100 ///
-	_col(66) %7.3fc Comu/PIB*100 ///
-	_col(77) %6.1fc (MMComu/Comu-1)*100
+	_col(44) in y %20.3fc MMComuT/PIB*100 ///
+	_col(66) %7.3fc ComuT/PIB*100 ///
+	_col(77) %6.1fc (MMComuT/ComuT-1)*100
 noisily di in g "  (+) Recreación y cultura " ///
-	_col(44) in y %20.3fc MMRecr/PIB*100 ///
-	_col(66) %7.3fc Recr/PIB*100 ///
-	_col(77) %6.1fc (MMRecr/Recr-1)*100
+	_col(44) in y %20.3fc MMRecrT/PIB*100 ///
+	_col(66) %7.3fc RecrT/PIB*100 ///
+	_col(77) %6.1fc (MMRecrT/RecrT-1)*100
 noisily di in g "  (+) Educación " ///
-	_col(44) in y %20.3fc MMEduc/PIB*100 ///
-	_col(66) %7.3fc Educ/PIB*100 ///
-	_col(77) %6.1fc (MMEduc/Educ-1)*100
+	_col(44) in y %20.3fc MMEducT/PIB*100 ///
+	_col(66) %7.3fc EducT/PIB*100 ///
+	_col(77) %6.1fc (MMEducT/EducT-1)*100
 noisily di in g "  (+) Restaurantes y hoteles" ///
-	_col(44) in y %20.3fc MMRest/PIB*100 ///
-	_col(66) %7.3fc Rest/PIB*100 ///
-	_col(77) %6.1fc (MMRest/Rest-1)*100
+	_col(44) in y %20.3fc MMRestT/PIB*100 ///
+	_col(66) %7.3fc RestT/PIB*100 ///
+	_col(77) %6.1fc (MMRestT/RestT-1)*100
 noisily di in g "  (+) Bienes y servicios diveresos " ///
-	_col(44) in y %20.3fc MMDive/PIB*100 ///
-	_col(66) %7.3fc Dive/PIB*100 ///
-	_col(77) %6.1fc (MMDive/Dive-1)*100
+	_col(44) in y %20.3fc MMDiveT/PIB*100 ///
+	_col(66) %7.3fc DiveT/PIB*100 ///
+	_col(77) %6.1fc (MMDiveT/DiveT-1)*100
 noisily di in g _dup(84) "-"
 noisily di in g "  (=) Total Consumo " ///
 	_col(44) in y %20.3fc MMTot/PIB*100 ///
@@ -929,10 +944,10 @@ noisily di in g "  (=) Total Consumo " ///
 
 ** 4.3. Guardar base **
 if `c(version)' > 13.1 {
-	saveold "`c(sysdir_personal)'/SIM/`=anioenigh'/expenditures.dta", replace version(13)
+	saveold "`c(sysdir_site)'/04_master/`=anioenigh'/expenditures.dta", replace version(13)
 }
 else {
-	save "`c(sysdir_personal)'/SIM/`=anioenigh'/expenditures.dta", replace
+	save "`c(sysdir_site)'/04_master/`=anioenigh'/expenditures.dta", replace
 }
 
 
@@ -959,13 +974,13 @@ if `=anioenigh' >= 2014 {
 		7.77)   //  13  Evasion e informalidad IVA, input[0-100]
 }
 
-use "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_categ_iva_pc.dta", clear
-merge m:1 (folioviv foliohog) using "`c(sysdir_site)'../BasesCIEP/INEGI/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor)
+use "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_categ_iva_pc.dta", clear
+merge m:1 (folioviv foliohog) using "`c(sysdir_site)'/01_raw/ENIGH/`=anioenigh'/concentrado.dta", nogen keepus(factor)
 capture rename factor_hog factor
 order folioviv foliohog numren
 drop *_hog* *_ind*
 
-*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'../BasesCIEP/INEGI/CONEVAL/2022/Base final/pobreza_20.dta", nogen keepus(decil)
+*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'/01_raw/CONEVAL/2022/Base final/pobreza_20.dta", nogen keepus(decil)
 reshape long gas_pc_ cant_pc_ proporcion, i(folioviv foliohog numren) j(categs) string
 
 
@@ -1012,9 +1027,9 @@ noisily di in g "  Total " ///
 	_col(66) %7.3fc `IVA'/PIB*100 ///
 	_col(77) %6.2fc (1-`IVA'/scalar(IVA))*100 "%"
 
-save "`c(sysdir_personal)'/SIM/`=anioenigh'/categ_iva.dta", replace
+save "`c(sysdir_site)'/04_master/`=anioenigh'/categ_iva.dta", replace
 collapse (sum) IVA, by(folioviv foliohog numren)
-save "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_categ_iva.dta", replace
+save "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_categ_iva.dta", replace
 
 
 
@@ -1038,10 +1053,10 @@ if `=anioenigh' >= 2014 {
 				3.0		,		0 			) //  Telecomunicaciones
 }
 
-use "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_categ_ieps_pc.dta", clear
+use "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_categ_ieps_pc.dta", clear
 drop gas_hog* cant_hog* gas_ind* cant_ind*
 
-*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'../BasesCIEP/INEGI/CONEVAL/2022/Base final/pobreza_20.dta", nogen keepus(decil)
+*merge 1:1 (folioviv foliohog numren) using "`c(sysdir_site)'/01_raw/CONEVAL/2022/Base final/pobreza_20.dta", nogen keepus(decil)
 reshape long gas_pc_ cant_pc_ proporcion, i(folioviv foliohog numren) j(categs) string
 
 
@@ -1114,7 +1129,7 @@ noisily di in g "  Total " ///
 	_col(77) %6.1fc -(`IEPSNP'/scalar(IEPS)-1)*100 "%"
 
 collapse (sum) IEPS, by(folioviv foliohog numren)
-save "`c(sysdir_personal)'/SIM/`=anioenigh'/consumption_categ_ieps.dta", replace
+save "`c(sysdir_site)'/04_master/`=anioenigh'/consumption_categ_ieps.dta", replace
 
 
 

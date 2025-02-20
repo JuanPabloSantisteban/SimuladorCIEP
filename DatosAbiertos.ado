@@ -2,11 +2,11 @@ program define DatosAbiertos, return
 quietly {
 
 	** 0.1 Revisa si se puede usar la base de datos **
-	capture use "`c(sysdir_site)'/SIM/DatosAbiertos.dta", clear
+	capture use "`c(sysdir_site)'/04_master/DatosAbiertos.dta", clear
 	if _rc != 0 {
 		UpdateDatosAbiertos
 	}
-	capture use "`c(sysdir_site)'/SIM/Deflactor.dta", clear
+	capture use "`c(sysdir_site)'/04_master/Deflactor.dta", clear
 	if _rc != 0 {
 		UpdateDeflactor
 	}
@@ -35,11 +35,11 @@ quietly {
 		noisily UpdateDeflactor
 	}
 	
-	use if clave_de_concepto == "`anything'" using "`c(sysdir_site)'/SIM/DatosAbiertos.dta", clear
+	use if clave_de_concepto == "`anything'" using "`c(sysdir_site)'/04_master/DatosAbiertos.dta", clear
 	*drop in -1
-	merge 1:1 (anio mes) using "`c(sysdir_site)'/SIM/Deflactor.dta", nogen keep(matched)
-	merge m:1 (anio) using "`c(sysdir_site)'/SIM/Poblaciontot.dta", nogen keep(matched)
-	merge m:1 (anio trimestre) using "`c(sysdir_personal)'/SIM/PIBDeflactor.dta", nogen
+	merge 1:1 (anio mes) using "`c(sysdir_site)'/04_master/Deflactor.dta", nogen keep(matched)
+	merge m:1 (anio) using "`c(sysdir_site)'/04_master/Poblaciontot.dta", nogen keep(matched)
+	merge m:1 (anio trimestre) using "`c(sysdir_site)'/04_master/PIBDeflactor.dta", nogen
 
 	** Limpiar **
 	tsset aniomes
@@ -57,7 +57,7 @@ quietly {
 	*replace poblacion = poblacion*lambda
 
 	if "`anything'" == "" {
-		use "`c(sysdir_site)'/SIM/DatosAbiertos.dta", clear
+		use "`c(sysdir_site)'/04_master/DatosAbiertos.dta", clear
 		exit
 	}
 	if `=_N' == 0 {
@@ -405,7 +405,8 @@ program define UpdateDatosAbiertos, return
 	local aniovp = substr(`"`=trim("`fecha'")'"',1,4)
 	local mesvp = substr(`"`=trim("`fecha'")'"',6,2)
 
-	capture use "`c(sysdir_site)'/SIM/DatosAbiertos.dta", clear
+	capture mkdir "`c(sysdir_site)'/03_temp/Datos Abiertos/"
+	capture use "`c(sysdir_site)'/04_master/DatosAbiertos.dta", clear
 	if (_rc == 0 & "`update'" != "update") {	
 		sort anio mes
 		return local ultanio = anio[_N]
@@ -429,26 +430,26 @@ program define UpdateDatosAbiertos, return
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/ingreso_gasto_finan.csv", clear
 	}
 	else {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/ingreso_gasto_finan.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan.dta", replace
 	}
 	tempfile ing
 	save "`ing'"
 	
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan_hist.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan_hist.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/ingreso_gasto_finan_hist.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan_hist.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan_hist.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/ingreso_gasto_finan_hist.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan_hist.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan_hist.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan_hist.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan_hist.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/ingreso_gasto_finan_hist.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/ingreso_gasto_finan_hist.dta", clear
 	tempfile ingH
 	save "`ingH'"
 
@@ -458,26 +459,26 @@ program define UpdateDatosAbiertos, return
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/deuda_publica.csv", clear
 	}
 	else {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/deuda_publica.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica.dta", replace
 	}	
 	tempfile deuda
 	save "`deuda'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica_hist.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica_hist.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/deuda_publica_hist.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica_hist.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica_hist.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/deuda_publica_hist.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica_hist.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica_hist.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica_hist.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica_hist.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/deuda_publica_hist.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/deuda_publica_hist.dta", clear
 	tempfile deudaH
 	save "`deudaH'"
 
@@ -487,26 +488,26 @@ program define UpdateDatosAbiertos, return
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/shrfsp_deuda_amplia_actual.csv", clear
 	}
 	else {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/shrfsp_deuda_amplia_actual.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplia_actual.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplia_actual.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplia_actual.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplia_actual.dta", replace
 	}
 	tempfile shrf
 	save "`shrf'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplshrfsp_deuda_amplia_antes_2014ia_actual_hist.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplshrfsp_deuda_amplia_antes_2014ia_actual_hist.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/shrfsp_deuda_amplia_antes_2014.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/shrfsp_deuda_amplia_antes_2014.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/shrfsp_deuda_amplia_antes_2014.dta", clear
 	tempfile shrfH
 	save "`shrfH'"
 
@@ -516,26 +517,26 @@ program define UpdateDatosAbiertos, return
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/rfsp.csv", clear
 	}
 	else {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/rfsp.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp.dta", replace
 	}
 	tempfile rf
 	save "`rf'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp_metodologia_anterior.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp_metodologia_anterior.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/rfsp_metodologia_anterior.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp_metodologia_anterior.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp_metodologia_anterior.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/rfsp_metodologia_anterior.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp_metodologia_anterior.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp_metodologia_anterior.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp_metodologia_anterior.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp_metodologia_anterior.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/rfsp_metodologia_anterior.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/rfsp_metodologia_anterior.dta", clear
 	tempfile rfH
 	save "`rfH'"
 
@@ -545,358 +546,358 @@ program define UpdateDatosAbiertos, return
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/transferencias_entidades_fed.csv", clear
 	}
 	else {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/transferencias_entidades_fed.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed.dta", replace
 	}
 	tempfile gf
 	save "`gf'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed_hist.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed_hist.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/transferencias_entidades_fed_hist.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed_hist.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed_hist.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/transferencias_entidades_fed_hist.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed_hist.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed_hist.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed_hist.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed_hist.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/transferencias_entidades_fed_hist.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/transferencias_entidades_fed_hist.dta", clear
 	tempfile gfH
 	save "`gfH'"
 	
 	***********************************************************
 	** 1.6 Asignación y ejecución del presupuesto de egresos **
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2024.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2024.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2024.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2024.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2024.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2024.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2024.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2024.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2024.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2024.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2024.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2024.dta", clear
 	tempfile asignacion2024
 	save "`asignacion2024'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2023.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2023.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2023.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2023.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2023.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2023.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2023.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2023.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2023.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2023.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2023.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2023.dta", clear
 	tempfile asignacion2023
 	save "`asignacion2023'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2022.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2022.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2022.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2022.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2022.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2022.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2022.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2022.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2022.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2022.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2022.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2022.dta", clear
 	tempfile asignacion2022
 	save "`asignacion2022'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2021.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2021.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2021.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2021.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2021.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2021.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2021.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2021.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2021.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2021.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2021.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2021.dta", clear
 	tempfile asignacion2021
 	save "`asignacion2021'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2020.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2020.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2020.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2020.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2020.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2020.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2020.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2020.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2020.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2020.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2020.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2020.dta", clear
 	tempfile asignacion2020
 	save "`asignacion2020'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2019.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2019.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2019.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2019.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2019.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2019.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2019.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2019.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2019.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2019.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2019.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2019.dta", clear
 	tempfile asignacion2019
 	save "`asignacion2019'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2018.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2018.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2018.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2018.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2018.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2018.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2018.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2018.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2018.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2018.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2018.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2018.dta", clear
 	tempfile asignacion2018
 	save "`asignacion2018'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2017.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2017.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2017.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2017.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2017.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2017.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2017.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2017.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2017.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2017.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2017.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2017.dta", clear
 	tempfile asignacion2017
 	save "`asignacion2017'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2016.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2016.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2016.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2016.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2016.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2016.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2016.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2016.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2016.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2016.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2016.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2016.dta", clear
 	tempfile asignacion2016
 	save "`asignacion2016'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2015.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2015.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2015.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2015.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2015.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2015.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2015.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2015.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2015.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2015.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2015.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2015.dta", clear
 	tempfile asignacion2015
 	save "`asignacion2015'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2014.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2014.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2014.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2014.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2014.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2014.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2014.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2014.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2014.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2014.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2014.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2014.dta", clear
 	tempfile asignacion2014
 	save "`asignacion2014'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2013.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2013.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2013.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2013.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2013.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2013.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2013.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2013.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2013.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2013.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2013.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2013.dta", clear
 	tempfile asignacion2013
 	save "`asignacion2013'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2012.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2012.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2012.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2012.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2012.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2012.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2012.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2012.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2012.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2012.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2012.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2012.dta", clear
 	tempfile asignacion2012
 	save "`asignacion2012'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2011.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2011.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2011.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2011.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2011.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2011.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2011.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2011.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2011.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2011.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2011.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2011.dta", clear
 	tempfile asignacion2011
 	save "`asignacion2011'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2010.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2010.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2010.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2010.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2010.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2010.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2010.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2010.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2010.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2010.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2010.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2010.dta", clear
 	tempfile asignacion2010
 	save "`asignacion2010'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2009.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2009.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2009.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2009.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2009.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2009.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2009.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2009.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2009.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2009.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2009.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2009.dta", clear
 	tempfile asignacion2009
 	save "`asignacion2009'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2008.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2008.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2008.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2008.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2008.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2008.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2008.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2008.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2008.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2008.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2008.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2008.dta", clear
 	tempfile asignacion2008
 	save "`asignacion2008'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2007.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2007.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2007.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2007.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2007.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2007.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2007.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2007.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2007.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2007.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2007.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2007.dta", clear
 	tempfile asignacion2007
 	save "`asignacion2007'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2006.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2006.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2006.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2006.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2006.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2006.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2006.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2006.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2006.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2006.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2006.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2006.dta", clear
 	tempfile asignacion2006
 	save "`asignacion2006'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2005.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2005.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2005.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2005.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2005.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2005.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2005.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2005.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2005.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2005.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2005.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2005.dta", clear
 	tempfile asignacion2005
 	save "`asignacion2005'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2004.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2004.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2004.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2004.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2004.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2004.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2004.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2004.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2004.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2004.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2004.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2004.dta", clear
 	tempfile asignacion2004
 	save "`asignacion2004'"
 
-	capture confirm file "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2003.dta"
+	capture confirm file "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2003.dta"
 	if _rc != 0 {
 		import delimited "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2003.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2003.dta", replace
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2003.dta", replace
 	}
 	if "`zipfile'" == "zipfile" {
-		cd "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos"
+		cd "`c(sysdir_site)'/03_temp/Datos Abiertos"
 		unzipfile "https://www.secciones.hacienda.gob.mx/work/models/estadisticas_oportunas/datos_abiertos_eopf/asignacion_ejecucion_2003.zip", replace
-		import delimited "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2003.csv", clear
-		save "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2003.dta", replace
+		import delimited "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2003.csv", clear
+		save "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2003.dta", replace
 	}
-	use "`c(sysdir_site)'../BasesCIEP/SHCP/Datos Abiertos/asignacion_ejecucion_2003.dta", clear
+	use "`c(sysdir_site)'/03_temp/Datos Abiertos/asignacion_ejecucion_2003.dta", clear
 	tempfile asignacion2003
 	save "`asignacion2003'"
 
@@ -995,7 +996,7 @@ program define UpdateDatosAbiertos, return
 
 	***************************************************
 	** 4.1 ISR fisicas, morales, asalariados y otros **
-	import excel "`c(sysdir_site)'../BasesCIEP/LIFs/ISRInformesTrimestrales.xlsx", ///
+	import excel "`c(sysdir_site)'/01_raw/ISRInformesTrimestrales.xlsx", ///
 		clear sheet("TipoDeContribuyente") firstrow case(lower)
 	tsset anio trimestre
 	drop total
@@ -1175,10 +1176,10 @@ program define UpdateDatosAbiertos, return
 	compress
 
 	if `c(version)' > 13.1 {
-		saveold "`c(sysdir_site)'/SIM/DatosAbiertos.dta", replace version(13)
+		saveold "`c(sysdir_site)'/04_master/DatosAbiertos.dta", replace version(13)
 	}
 	else {
-		save "`c(sysdir_site)'/SIM/DatosAbiertos.dta", replace
+		save "`c(sysdir_site)'/04_master/DatosAbiertos.dta", replace
 	}
 
 	noisily di in g "{c U'}ltimo dato: " in y "`=anio[_N]'m`=mes[_N]'."
@@ -1215,12 +1216,6 @@ quietly {
 	noisily di in g "  Último anio: " in y anio[_N]
 	noisily di in g "  Último mes: " in y mes[_N]
 
-	if `c(version)' > 13.1 {
-		saveold "`c(sysdir_site)'/SIM/Deflactor.dta", replace version(13)
-	}
-	else {
-		save "`c(sysdir_site)'/SIM/Deflactor.dta", replace
-	}
-	cd "`c(sysdir_personal)'"
+	save "`c(sysdir_site)'/04_master/Deflactor.dta", replace
 }
 end

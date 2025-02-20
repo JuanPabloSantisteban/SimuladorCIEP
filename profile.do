@@ -10,9 +10,9 @@ set type double, permanently
 set charset latin1, permanently
 
 global id = "`c(username)'"
-capture mkdir "`c(sysdir_personal)'/SIM/"
-capture mkdir "`c(sysdir_personal)'/users/"
-capture mkdir "`c(sysdir_personal)'/users/$id/"
+*capture mkdir "`c(sysdir_site)'/SIM/"
+*capture mkdir "`c(sysdir_site)'/users/"
+*capture mkdir "`c(sysdir_site)'/users/$id/"
 
 
 
@@ -52,47 +52,19 @@ if anioPE >= 2013 & anioPE < 2016 {
 	scalar anioenigh = 2014
 }
 
-** 2.5 Economía: Crecimiento anual del Producto Interno Bruto **
-global pib2024 = 2.0876 // 2.578
-global pib2025 = 2.2505 // 2.5007
-global pib2026 = 2.5
-global pib2027 = 2.5
-global pib2028 = 2.5
-global pib2029 = 2.5
-global pib2030 = 2.5
-
-** 2.6 Economía: Deflactor del Producto Interno Bruto **
-global def2024 = 4.6
-global def2025 = 4.2521
-global def2026 = 3.5
-global def2027 = 3.5
-global def2028 = 3.5
-global def2029 = 3.5
-global def2030 = 3.5
-
-** 2.7 Economía: Inflación **
-*global inf2024 = 4.3
-global inf2025 = 3.5
-global inf2026 = 3.0
-global inf2027 = 3.0
-global inf2028 = 3.0
-global inf2029 = 3.0
-global inf2030 = 3.0
 
 
-
-*******************/
+********************
 ***              ***
 *** 3 BIENVENIDA ***
 ***              ***
 ********************
 noisily di in w _newline(50) "{bf:Centro de Investigaci{c o'}n Econ{c o'}mica y Presupuestaria, A.C.}"
-noisily di _newline(2) in g `"{bf:{stata `"projmanager "`c(sysdir_personal)'/simulador.stpr""': Simulador Fiscal CIEP}}"'
+noisily di _newline(2) in g `"{bf:{stata `"projmanager "`c(sysdir_site)'/simulador.stpr""': Simulador Fiscal CIEP}}"'
 noisily di in g " Información Económica:  " _col(30) in y "$paqueteEconomico" ///
 	_newline in g " Año de Valor Presente:  " _col(30) in y "`=aniovp'" ///
 	_newline in g " Año de ENIGH:  " _col(30) in y "`=anioenigh'" ///
-	_newline in g " User: " _col(30) in y "$id" ///
-	_newline(2) " CLICK para ejecutar los comandos o usar la siguiente sintaxis: "
+	_newline in g " User: " _col(30) in y "$id"
 
 noisily di _newline `" {stata "Poblacion":Poblacion} [if entidad == "{it:Nombre}"] [, ANIOinicial(int) ANIOFINal(int) NOGraphs]"'
 noisily di `" {stata "PIBDeflactor, geopib(2010) geodef(2010)":PIBDeflactor} [, ANIOvp(int) DIScount(real) NOGraphs]"'
@@ -106,14 +78,41 @@ noisily di `" {stata "TasasEfectivas":TasasEfectivas} [, ANIO(int)]"'
 noisily di `" {stata "GastoPC":GastoPC} [, ANIO(int)]"'
 
 
-ex
-******************************
-***                        ***
-*** 2 PARÁMETROS GENERALES ***
-***                        ***
-******************************
 
-** 2.8 Deuda Pública **
+*********************************
+***                           ***
+*** 4 PARÁMETROS PARTICULARES ***
+***                           ***
+*********************************
+
+** 4.1 Economía: Crecimiento anual del Producto Interno Bruto **
+global pib2024 = 2.0876 // 2.578
+global pib2025 = 2.2505 // 2.5007
+global pib2026 = 2.5
+global pib2027 = 2.5
+global pib2028 = 2.5
+global pib2029 = 2.5
+global pib2030 = 2.5
+
+** 4.2 Economía: Deflactor del Producto Interno Bruto **
+global def2024 = 4.6
+global def2025 = 4.2521
+global def2026 = 3.5
+global def2027 = 3.5
+global def2028 = 3.5
+global def2029 = 3.5
+global def2030 = 3.5
+
+** 4.3 Economía: Inflación **
+global inf2024 = 4.3
+global inf2025 = 3.5
+global inf2026 = 3.0
+global inf2027 = 3.0
+global inf2028 = 3.0
+global inf2029 = 3.0
+global inf2030 = 3.0
+
+** 4.4 Deuda Pública **
 scalar tasaEfectiva = 6.3782
 
 global shrfsp2024 = 51.4
@@ -229,8 +228,8 @@ global costodeudaInterno2030 = 2.7
 global costodeudaExterno2030 = 2.7
 
 
-** 2.9 Parámetros: PEF **/
-** 2.9.1 Parámetros: Educación **
+** 4.5 Parámetros: PEF **/
+** 4.5.1 Parámetros: Educación **
 scalar iniciaA     =     370 //    Inicial
 scalar basica      =   29529 //    Educación b{c a'}sica
 scalar medsup      =   28787 //    Educación media superior
@@ -242,7 +241,7 @@ scalar invere      =     675 //    Inversión en educación
 scalar cultur      =     146 //    Cultura, deportes y recreación
 scalar invest      =     380 //    Ciencia y tecnología
 
-** 2.9.2 Parámetros: Salud **
+** 4.5.2 Parámetros: Salud **
 scalar ssa         =     276 //    SSalud
 scalar imssbien    =    3728 //    IMSS-Bienestar
 scalar imss        =    8923 //    IMSS (salud)
@@ -251,34 +250,34 @@ scalar pemex       =   29562 //    Pemex (salud)
 scalar issfam      =   17397 //    ISSFAM (salud)
 scalar invers      =     240 //    Inversión en salud
 
-** 2.9.3 Parámetros: Pensiones **
+** 4.5.3 Parámetros: Pensiones **
 scalar pam         =   39356 //    Pensión Bienestar
 scalar penimss     =  307742 //    Pensión IMSS
 scalar penisss     =  410655 //    Pensión ISSSTE
 scalar penpeme     =  923092 //    Pensión Pemex
 scalar penotro     = 3336107 //    Pensión CFE, LFC, ISSFAM, Ferronales
 
-** 2.9.4 Parámetros: Energía **
+** 4.5.4 Parámetros: Energía **
 scalar gascfe      =    3146 //    Gasto en CFE
 scalar gaspemex    =    1129 //    Gasto en Pemex
 scalar gassener    =     690 //    Gasto en SENER
 scalar gasinverf   =    3182 //    Gasto en inversión (energía)
 scalar gascosdeue  =    1397 //    Gasto en costo de la deuda (energía)
 
-** 2.9.5 Parámetros: Otros gastos **
+** 4.5.5 Parámetros: Otros gastos **
 scalar gasinfra    =    3890 //    Gasto en Otras Inversiones
 scalar gasotros    =    4451 //    Otros gastos
 scalar gasfeder    =   10720 //    Participaciones y Otras aportaciones
 scalar gascosto    =    9356 //    Gasto en Costo de la deuda
 
-** 2.9.6 Parámetros: Transferencas **
+** 4.5.6 Parámetros: Transferencas **
 scalar IngBas      =       0 //    Ingreso b{c a'}sico
 scalar ingbasico18 =       1 //    1: Incluye menores de 18 anios, 0: no
 scalar ingbasico65 =       1 //    1: Incluye mayores de 65 anios, 0: no
 scalar gasmadres   =     492 //    Apoyo a madres trabajadoras
 scalar gascuidados =    3339 //    Gasto en cuidados
 
-** 2.10 Parámetros: Ingresos **
+** 4.6 Parámetros: Ingresos **
 scalar ISRAS       =   3.644 //    ISR (asalariados)
 scalar ISRPF       =   0.231 //    ISR (personas f{c i'}sicas)
 scalar CUOTAS      =   1.663 //    Cuotas (IMSS)
@@ -298,7 +297,7 @@ scalar IEPSNP      =   0.663 //    IEPS (no petrolero)
 scalar IEPSP       =   1.306 //    IEPS (petrolero)
 scalar IMPORT      =   0.419 //    Importaciones
 
-** 2.11 Parámetros: ISR **/
+** 4.7 Parámetros: ISR **/
 * Anexo 8 de la Resolución Miscelánea Fiscal para 2024 *
 * Tarifa para el cálculo del impuesto correspondiente al ejericio 2024 a que se refieren los artículos 97 y 152 de la Ley del ISR
 * Tabla del subsidio para el empleo aplicable a la tarifa del numeral 5 del rubro B (página 773) *
@@ -336,7 +335,7 @@ matrix DED = (5,		15,			87.30, 			25.02)
 *           Tasa ISR PM.	% Informalidad PM
 matrix PM = (30,			30.55)
 
-** 2.12 Parámetros: IMSS e ISSSTE **
+** 4.8 Parámetros: IMSS e ISSSTE **
 * Informe al Ejecutivo Federal y al Congreso de la Unión la situación financiera y los riesgos del IMSS 2021-2022 *
 * Anexo A, Cuadro A.4 *
 matrix CSS_IMSS = ///
@@ -361,7 +360,7 @@ matrix CSS_ISSSTE = ///
 		0.000,		5.000,			0.000	\   /// Vivienda
 		0.000,		0.000,			13.9)		//  Cuota social
 
-** 2.13 Parámetros: IVA **
+** 4.9 Parámetros: IVA **
 matrix IVAT = (16 \     ///  1  Tasa general 
 	1  \     ///  2  Alimentos, input[1]: Tasa Cero, [2]: Exento, [3]: Gravado
 	2  \     ///  3  Alquiler, idem
@@ -376,7 +375,7 @@ matrix IVAT = (16 \     ///  1  Tasa general
 	3  \     /// 12  Transporte foraneo, idem
 	7.77)   //  13  Evasion e informalidad IVA, input[0-100]
 
-** 2.14 Parámetros: IEPS **
+** 4.10 Parámetros: IEPS **
 * Fuente: Ley del IEPS, Artículo 2.
 *              Ad valorem	Específico
 matrix IEPST = (26.5	,	0 		\ /// Cerveza y alcohol 14
@@ -398,13 +397,13 @@ matrix IEPST = (26.5	,	0 		\ /// Cerveza y alcohol 14
 		0	,	6.7865		) // Gasolina: diésel
 
 
-				
+			
 ****************
 ***          ***
-*** 3 OUTPUT ***
+*** 5 OUTPUT ***
 ***          ***
 ****************
 if "$output" != "" {
-	quietly log using `"`c(sysdir_personal)'/users/$id/output.txt"', replace text name(output)
+	quietly log using `"`c(sysdir_site)'/users/$id/output.txt"', replace text name(output)
 	quietly log off output
 }

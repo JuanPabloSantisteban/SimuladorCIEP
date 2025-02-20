@@ -135,20 +135,6 @@ SCN, anio(`1') nographs
 ***                                        ***
 **********************************************
 
-** 5.1 Encuesta Nacional de Ingresos y Gastos de los Hogares (expenditures) **
-** Inputs: `c(sysdir_personal)'../BasesCIEP/INEGI/ENIGH/`anio'/
-** Outputs: Archivo "`c(sysdir_personal)'/SIM/`anio'/expenditures.dta".
-capture confirm file "`c(sysdir_personal)'/SIM/`=anioenigh'/expenditures.dta"
-//if _rc != 0 ///
-	noisily run "`c(sysdir_personal)'/Expenditure.do" `1'
-
-
-** 5.2 Encuesta Nacional de Ingresos y Gastos de los Hogares (ingresos) **
-** Outputs: Archivo "`c(sysdir_personal)'/SIM/`anio'/households.dta".
-capture confirm file "`c(sysdir_personal)'/SIM/`=anioenigh'/households.dta"
-//if _rc != 0 ///
-	noisily run `"`c(sysdir_personal)'/Households.do"' `1'
-
 
 ** 5.3 Usar base de datos conciliada **
 use "`c(sysdir_personal)'/SIM/`=anioenigh'/households.dta", clear

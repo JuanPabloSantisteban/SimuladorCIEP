@@ -13,7 +13,7 @@ quietly {
 	}
 
 	** 0.2 Base LIF **
-	capture confirm file "`c(sysdir_personal)'/SIM/LIF.dta"
+	capture confirm file "`c(sysdir_site)'/04_master/LIF.dta"
 	if _rc != 0 {
 		noisily UpdateLIF
 	}
@@ -23,7 +23,7 @@ quietly {
 	***************
 	*** 1 SYNTAX **
 	***************
-	use in 1 using "`c(sysdir_personal)'/SIM/LIF.dta", clear
+	use in 1 using "`c(sysdir_site)'/04_master/LIF.dta", clear
 	syntax [if] [, ANIO(int `aniovp' ) BY(varname) ///
 		UPDATE NOGraphs Base ///
 		MINimum(real 0.5) DESDE(int -1) ///
@@ -50,7 +50,7 @@ quietly {
 
 	** 1.3 Base RAW **
 	if "`base'" == "base" {
-		use `if' using "`c(sysdir_personal)'/SIM/LIF.dta", clear
+		use `if' using "`c(sysdir_site)'/04_master/LIF.dta", clear
 		exit
 	}
 
@@ -81,7 +81,7 @@ quietly {
 
 	** 2.2 Datos Abiertos **
 	if "`update'" == "update" {
-		capture confirm file "`c(sysdir_personal)'/SIM/DatosAbiertos.dta"
+		capture confirm file "`c(sysdir_site)'/04_master/DatosAbiertos.dta"
 		if _rc != 0 | "`update'" == "update" {
 			DatosAbiertos, update
 			local updated = r(updated)
@@ -106,7 +106,7 @@ quietly {
 	***************
 	*** 3 Merge ***
 	***************
-	use "`c(sysdir_personal)'/SIM/LIF.dta", clear
+	use "`c(sysdir_site)'/04_master/LIF.dta", clear
 	*drop if nombre == ""
 	sort anio mes
 	merge m:1 (anio) using `PIB', nogen keepus(pibY indiceY deflator lambda var_pibY) update replace keep(matched)
@@ -559,7 +559,7 @@ quietly {
 		*capture window manage close graph ingresosMXN`by'
 		*capture window manage close graph ingresos`by'PIB
 	
-		graph save ingresos`by'PIB "`c(sysdir_personal)'/SIM/graphs/ingresos`by'PIB", replace
+		graph save ingresos`by'PIB "`c(sysdir_site)'/04_master/graphs/ingresos`by'PIB", replace
 		if "$export" != "" {
 			graph export "$export/ingresos`by'PIB.png", as(png) name("ingresos`by'PIB") replace
 		}
@@ -592,7 +592,7 @@ program define UpdateLIF
 	************************
 	*** 1. BASE DE DATOS ***
 	************************
-	import excel `"`c(sysdir_site)'../BasesCIEP/LIFs/LIFs.xlsx"', clear firstrow
+	import excel `"`c(sysdir_site)'/01_raw/LIFs.xlsx"', clear firstrow
 	foreach k of varlist _all {
 		capture confirm string variable `k'
 		if _rc == 0 {
@@ -612,11 +612,11 @@ program define UpdateLIF
 	foreach k of varlist div* {
 		capture confirm variable num`k'
 		if _rc == 0 {
-			capture labmask num`k', values(`k')
-			if _rc == 199 {
+			capture which labmask
+			if _rc != 0 {
 				net install labutil.pkg
-				labmask num`k', values(`k')
 			}
+			labmask num`k', values(`k')
 			drop `k'
 			rename num`k' `k'
 			continue
@@ -705,10 +705,5 @@ program define UpdateLIF
 	capture order div* nombre serie anio LIF ILIF monto
 	compress
 	sort div* nombre serie anio
-	if `c(version)' > 13.1 {
-		saveold "`c(sysdir_personal)'/SIM/LIF.dta", replace version(13)
-	}
-	else {
-		save "`c(sysdir_personal)'/SIM/LIF.dta", replace
-	}
+	save "`c(sysdir_site)'/04_master/LIF.dta", replace
 end

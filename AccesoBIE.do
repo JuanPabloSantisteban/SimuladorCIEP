@@ -6,12 +6,13 @@ local series = subinstr("`series'"," ",",",.)
 
 local names "`2'"
 
-capture mkdir "`c(sysdir_personal)'/SIM"
-capture mkdir "`c(sysdir_personal)'/SIM/BIE"
-cd "`c(sysdir_personal)'/SIM/BIE"
+capture mkdir "`c(sysdir_site)'/03_temp/"
+capture mkdir "`c(sysdir_site)'/03_temp/AccesoBIE/"
+capture mkdir "`c(sysdir_site)'/04_master/"
+cd "`c(sysdir_site)'/03_temp/AccesoBIE/"
 
 
-python
+python:
 import requests
 import pandas as pd
 import re
@@ -74,7 +75,7 @@ local series = subinstr("`series'",","," ",.)
 tokenize `names'
 local j = 1
 foreach k of local series {
-	import delimited "`=c(sysdir_personal)'/SIM/BIE/`k'.csv", clear
+	import delimited "`=c(sysdir_site)'/03_temp/AccesoBIE/`k'.csv", clear
 	capture replace periodo = subinstr(periodo,"/p1","",.)
 	capture replace periodo = subinstr(periodo,"/r1","",.)
 	rename variable ``j''
