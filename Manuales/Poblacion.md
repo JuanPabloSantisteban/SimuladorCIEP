@@ -1,106 +1,193 @@
 # Simulador Fiscal CIEP v5.3: Población y proyecciones
 
-Versión: 28 de septiembre de 2022
+Versión: 19 de febrero de 2025
 
 
 ---
 
 
-## 1. UpdatePoblacion.do
-Es un *do-file* (`.do`) para que se tenga la libertad de modificarlo, en caso de ser necesario, por cambios en las nuevas bases. Sin embargo, se debe respetar la *estructura/formato de salida*[^1] para no generar conflictos posteriores en el Simulador. Son de interés las siguientes variables:
+## Poblacion.ado
 
-* población,
-* defunciones,
-* emigrantes,
-* inmigrantes y
-* tasa de fecundidad.
+**Descripción:** *Ado-file* que automatiza la extracción de datos de las Proyecciones de la Población de México del CONAPO. 
 
-[^1]: Se deben estructurar las bases, de tal forma, que podamos conocer la composición demográfica por **año, sexo, edad y entidad federativa**.
+### 1. Input: 
+En este programa se integran 3 bases de datos de CONAPO:[^1]
 
-
-
-### Objetivos
-
-1. **Descargar** las bases de datos de CONAPO desde su página web.
-2. **Limpiar y convertir** las bases en formato Stata para los propósitos del Simulador.
+1. Población: Contiene la estimación del número de habitantes a mitad de cada año entre 1950 y 2070.
+2. Defunciones: Contiene la estimación de las defunciones anuales entre 1950 y 2070. 
+3. Migración Internacional: Contiene la estimación del número de inmigrantes y emigrantes internacionales entre 1950 y 2069.
 
 
 
-### A. Población
-1. **Importamos** las bases de datos.
-2. **Limpiamos** las variables.
-3. **Guardamos** (de manera temporal) la base de datos.
-
-![poblacion](images/Poblacion/poblacion.png)
+### 2. Sintaxis:
 
 
+Para extraer datos, ingresa el prompt en la consola llamando al programa y selecciona los filtros y opciones deseados. 
 
-### B. Defunciones
+El prompt sigue esta sintaxis:
+`Poblacion [if] [, ANIOinicial(int) ANIOFINAL(int) NOGraphs UPDATE]`
 
-1. **Importamos** las bases de datos.
-2. **Limpiamos** las variables.
-3. **Guardamos** (de manera temporal) la base de datos.
+**A. Filtros disponibles:**
 
-![defunciones](images/Poblacion/defunciones.png)
+<!-- Filtros disponibles para incluir en el comando -->
 
-
-
-### C. Migración internacional
-1. **Importamos** las bases de datos.
-2. **Limpiamos** las variables. Esta base contiene los valores en rangos de edad; por lo tanto, se deben ajustar al formato de las otras dos bases del módulo. Se distribuyen los valores de manera uniforme entre los rangos de edad y año[^2].
-3. **Guardamos** (de manera temporal) la base de datos.
-
-[^2]: Se asume una distribución uniforme de las variable de migración, tanto en edad como en año. 
-
-![migracion](images/Poblacion/migracion.png)
-
-
-
-### D. Unión
-1. Usando los comandos `use` y `merge`, **unimos las bases (temporales)** por medio de las variables año, edad, sexo y entidad.
-2. **Limpiamos** los valores nulos (“.”) reemplazándolos por ceros y **renombramos** "República Mexicana" por "Nacional"
-3. **Agregamos**  los labels a las variables.
-4. **Calculamos la tasa de fecundidad** filtrando la base para tener el total de mujeres en edades fértiles y de los nacimientos por año (edad 0). Posteriormente, se calculan las medias por año y la tasa de fecundidad por año (nacimientos cada 1000 mujeres en edades fértiles).
-5. Finalmente, **guardamos la base final** en "c(sysdir_site)/SIM/Poblacion.dta" y en  "c(sysdir_site)/SIM/Poblaciontot.dta"[^3]
-
-[^3]: Por la diversidad de versiones disponibles de Stata, se guardan las bases en versión 13.
-
-![union](images/Poblacion/union.png)
-
-
----
-
-
-## 2. Poblacion.ado
-Es un *ado-file* (`.ado`) para automatizar el procesamiento de resultados. Antes de iniciar, el comando verifica la existencia de la base `Poblacion.dta`. Si no existe, se ejecuta el do-file `UpdatePoblacion.do`. También revisa la existencia del scalar `aniovp`.
-
-![paso0](images/Poblacion/Paso 0.png)
-
-
-
-### 1. Sintaxis
-`Poblacion [if] [, ANIOhoy(int) ANIOFINal(int) NOGraphs UPDATE]`
-
-* **aniohoy**: año base para los resultados. El *año actual* es el valor por default.
-* **aniofinal**: año final para las proyecciones. El último año de la serie es el valor por default.
-* **nographs**: evita la generación de las gráficas (para mayor rapidez).
-* **update**: ejecuta el do-file `UpdatePoblacion.do`.
-
-![paso1](images/Poblacion/Paso 1.png)
+<!-- Filtro: Entidad -->
+<label for="estado">Entidad:</strong></label>
+<select id="estado" onchange="actualizarComando()">
+  <option value="" selected disabled>Selecciona un estado</option>
+  <option value="Nacional">Nacional</option>
+  <option value="Aguascalientes">Aguascalientes</option>
+  <option value="Baja California">Baja California</option>
+  <option value="Baja California Sur">Baja California Sur</option>
+  <option value="Campeche">Campeche</option>
+  <option value="Chiapas">Chiapas</option>
+  <option value="Chihuahua">Chihuahua</option>
+  <option value="Ciudad de México">Ciudad de México</option>
+  <option value="Coahuila">Coahuila</option>
+  <option value="Colima">Colima</option>
+  <option value="Durango">Durango</option>
+  <option value="Estado de México">Estado de México</option>
+  <option value="Guanajuato">Guanajuato</option>
+  <option value="Guerrero">Guerrero</option>
+  <option value="Hidalgo">Hidalgo</option>
+  <option value="Jalisco">Jalisco</option>
+  <option value="Michoacán">Michoacán</option>
+  <option value="Morelos">Morelos</option>
+  <option value="Nayarit">Nayarit</option>
+  <option value="Nuevo León">Nuevo León</option>
+  <option value="Oaxaca">Oaxaca</option>
+  <option value="Puebla">Puebla</option>
+  <option value="Querétaro">Querétaro</option>
+  <option value="Quintana Roo">Quintana Roo</option>
+  <option value="San Luis Potosí">San Luis Potosí</option>
+  <option value="Sinaloa">Sinaloa</option>
+  <option value="Sonora">Sonora</option>
+  <option value="Tabasco">Tabasco</option>
+  <option value="Tamaulipas">Tamaulipas</option>
+  <option value="Tlaxcala">Tlaxcala</option>
+  <option value="Veracruz">Veracruz</option>
+  <option value="Yucatán">Yucatán</option>
+  <option value="Zacatecas">Zacatecas</option>
+</select>
 
 
+<!-- Filtro: Sexo -->
+<label for="sexo">Sexo:</strong></label>
+<select id="sexo" onchange="actualizarComando()">
+  <option value="" selected disabled>Selecciona el sexo</option>
+  <!-- Se asigna "1" para Hombres y "2" para Mujeres -->
+  <option value="1">Hombres</option>
+  <option value="2">Mujeres</option>
+</select>
 
-### 2. Base de datos y display inicial
-Abre la base de datos `Poblacion.dta` y despliega la población del año inicial y del año final.
+**B. Opciones disponibles:**
 
-![paso2](images/Poblacion/Paso 2.png)
+<!-- Filtro: Año inicial y final -->
+<label for="anioInicial">Año Inicial:</strong></label>
+<input type="number" id="anioInicial" placeholder="Escribe el año base" oninput="actualizarComando()">
+
+
+<label for="anioFinal">Año Final:</strong></label>
+<input type="number" id="anioFinal" placeholder="Escribe el año final" oninput="actualizarComando()">
 
 
 
-### 3. Resultados
-1. **Grafica de la pirámide demográfica** por edades y para el año inicial y final.
-2. **Grafica de la transición demográfica** por grupo de edades y años.
+<!-- Opciones: NOGraphs y UPDATE -->
+<label for="noGraphs">Sin gráficos:</label>
+<input type="checkbox" id="noGraphs" onchange="actualizarComando()">
+
+
+<label for="update">Actualizar base:</label>
+<input type="checkbox" id="update" onchange="actualizarComando()">
+
+
+**Copia y pega este comando en la consola:**
+<pre id="codigoComando">Poblacion</pre>
+
+<script>
+  function actualizarComando() {
+    // Obtiene valores de cada filtro
+    var estado = document.getElementById("estado").value;
+    var sexo = document.getElementById("sexo").value;
+    var anioInicial = document.getElementById("anioInicial").value;
+    var anioFinal = document.getElementById("anioFinal").value;
+    var noGraphs = document.getElementById("noGraphs").checked;
+    var update = document.getElementById("update").checked;
+
+    // Comando base
+    var comando = "Poblacion";
+    
+    // Construye las condiciones sólo si se seleccionó alguna opción
+    var condiciones = [];
+    if(estado) {
+       condiciones.push('entidad == "' + estado + '"');
+    }
+    if(sexo) {
+       condiciones.push('sexo == ' + sexo);
+    }
+    if(condiciones.length > 0) {
+       comando += " if " + condiciones.join(" & ");
+    }
+    
+    // Prepara opciones adicionales (después de la coma)
+    var opciones = "";
+    if(anioInicial) {
+       opciones += ' anioinicial(' + anioInicial + ')';
+    }
+    if(anioFinal) {
+       opciones += ' aniofinal(' + anioFinal + ')';
+    }
+    if(noGraphs) {
+       opciones += ' nographs';
+    }
+    if(update) {
+       opciones += ' update';
+    }
+    
+    // Si se definió alguna opción, la agrega tras la coma
+    if(opciones.trim() !== "") {
+       comando += ',' + opciones;
+    }
+    
+    document.getElementById("codigoComando").textContent = comando;
+  }
+</script>
+
+
+<details>
+  <summary>Mostrar código</summary>
+  ![paso1](images/Poblacion/Paso 11.png)
+
+</details>
+
+
+
+
+### 3. Output:
+
+Tras ingresar el prompt, el código regresará tres elementos: ventana de resultados, dos gráficas y la base de datos. Podrás modificar el ado.file para obtener una base a tus necesidades.
+
+**1. Ventana de Resultados:** Muestra un resumen del análisis realizado. 
+
+  ![resultados](images/Poblacion/Ventana de Resultados.png) 
+
+**2. Gráficas:** Representación visual de los indicadores calculados.
+
+![Piramides](images/Poblacion/Piramides Demograficas.png) 
+
+![Transición](images/Poblacion/Transicion Demografica y Tasa de Dependencia.png) 
+
+**3. Base de Datos:** Permite al usuario obtener una base recortada y limpia para hacer sus propios análisis.
+
+![paso2](images/Poblacion/Base de Datos.png)
+
+### Revisar
+1. **Gráfica de la pirámide demográfica** por edades y para el año inicial y final.
+2. **Gráfica de la transición demográfica** por grupo de edades y años.
 
 ![paso3a](images/Poblacion/P_2022_2050_Nacional.png)
 ![paso3b](images/Poblacion/E_Nacional.png)
 
+
+
+[^1]: **Link:** [Bases de Datos CONAPO](https://www.gob.mx/conapo/articulos/reconstruccion-y-proyecciones-de-la-poblacion-de-los-municipios-de-mexico)
