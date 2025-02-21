@@ -1,17 +1,22 @@
 # Simulador Fiscal CIEP v5.3: PIB, deflactor y proyecciónes
 
-Versión: 14 de Febrero de 2023
+Versión: 20 de Febrero de 2025
 
 
 ---
 
 ## PIBDeflactor.ado
-**Descripción**: *Ado-file* (`.ado`) diseñado para automatizar el cálculo y predicción de indicadores económicos utilizando datos del Banco de Información Económica (BIE) y el Consejo Nacional de Población (CONAPO). 
+**Descripción**: *Ado-file* (`.ado`) diseñado para automatizar el cálculo y proyección de indicadores económicos utilizando datos del Banco de Información Económica (BIE) y el Consejo Nacional de Población (CONAPO). 
 
-En este programa Explicar cómo se va a comportar los indicadores, 1 histórico 2 estimación y 3 proyección
+Los indicadores se dividen en 3 categorías:
+
+* Datos históricos: Datos reales reportados desde 1993 hasta la fecha.
+* Estimaciones de CGPE: Datos estimados por la Secretaría de Hacienda desde la fecha actual hasta siete años en el futuro.
+* Proyecciones CIEP: Datos proyectados utilizando la metodología del CIEP con base en tendencias históricas. 
+
 
 <details>
-  <summary>Lista de indicadores generados</summary>
+  <summary>Indicadores de interés generados</summary>
 
 ---
 **1. Crecimiento Económico y Productividad**  
@@ -55,9 +60,18 @@ En este programa Explicar cómo se va a comportar los indicadores, 1 histórico 
 
 En este programa se utilizan 2 fuentes de datos:
 
-1. BIE:  Proporciona datos sobre el PIB, el deflactor de precios, la inflación y el empleo. 
-2. CONAPO: Contiene la estimación del número de habitantes a mitad de cada año entre 1950 y 2070.
+1. BIE:  Proporciona datos sobre el PIB, el deflactor de precios, la inflación y el empleo. [^1] 
 
+2. CONAPO: Contiene la estimación del número de habitantes a mitad de cada año entre 1950 y 2070. [^2]
+
+<details>
+  <summary>Mostrar código fuente</summary>
+  BIE:
+  ![paso1](images/PIBDeflactor/CodigoFuente1A.png)
+  ![paso1](images/PIBDeflactor/CodigoFuente1B.png)
+  CONAPO:
+  ![paso1](images/PIBDeflactor/CodigoFuente1C.png)
+</details>
 
 ### 2. Sintaxis
 
@@ -66,14 +80,13 @@ Para extraer los datos, es necesario ingresar el prompt en la consola siguiendo 
 `PIBDeflactor [if] [, ANIOvp(int) ANIOMAX(int 2070)  GEOPIB(int) GEODEF(int) DIScount(real) NOGraphs UPDATE]`
 
 
+
+
 Para crear comandos de manera automática y evitar errores de sintaxis, utiliza nuestra calculadora de prompts.
 
 <h4 style="border-bottom: 2px solid black; display: inline-block;">Calculadora de Prompts</h4>
 
-
-**A. Filtros disponibles:**
-
-**B. Opciones disponibles:**
+**A. Opciones disponibles:**
 <!-- Opciones para PIBDeflactor -->
 
 <div>
@@ -90,11 +103,11 @@ Para crear comandos de manera automática y evitar errores de sintaxis, utiliza 
   <input type="number" id="aniomax" placeholder="Ej. 2070" oninput="actualizarComando()">
 </div>
 <div>
-  <label for="geopib">Promedio Geométrico PIB:</label>
+  <label for="geopib">Promedio Geométrico (PIB):</label>
   <input type="number" id="geopib" placeholder="Ej. 1993" oninput="actualizarComando()">
 </div>
 <div>
-  <label for="geodef">Promedio Geométrico Deflactor:</label>
+  <label for="geodef">Promedio Geométrico (Deflactor):</label>
   <input type="number" id="geodef" placeholder="Ej. 1993" oninput="actualizarComando()">
 </div>
 <div>
@@ -151,16 +164,16 @@ Para crear comandos de manera automática y evitar errores de sintaxis, utiliza 
 
 - **Año Base (aniovp)**: Cambia el año de referencia para calcular el *valor presente*. Tiene que ser un número entre 1993 (mínimo reportado por el INEGI/BIE) y 2050 (máximo proyectado por el CONAPO, en su base de población). El *año actual* es el valor por default.
 - **Año Final (aniomax)**: Año final para las proyecciónes de las gráficas. El último año de la serie (2070) es el valor por default.
-- **Promedio Geométrico PIB (geopib)**:  Año base a partir del cual se calcula el crecimiento promedio geométrico del PIB, utilizado para proyectar el crecimiento en años futuros. [^1]
-- **Promedio Geométrico Deflactor (geodef)**:  Año base a partir del cual se calcula el crecimiento promedio geométrico del deflactor del PIB, utilizado para estimar la evolución de los precios en el futuro. [^2] 
+- **Promedio Geométrico PIB (geopib)**:  Año base a partir del cual se calcula el crecimiento promedio geométrico del PIB, utilizado para proyectar el crecimiento en años futuros. [^3]
+- **Promedio Geométrico Deflactor (geodef)**:  Año base a partir del cual se calcula el crecimiento promedio geométrico del deflactor del PIB, utilizado para estimar la evolución de los precios en el futuro. [^4] 
 - **Tasa de Descuento (discount)**: Tasa utilizada para convertir valores futuros del PIB en su equivalente a valor presente.
 - **Sin Gráfico (nographs)**: Evita la generación de gráficas.
 - **Actualizar Base (update)**: Corre un *do.file* para obtener los datos más recientes del BIE y el CONAPO. 
 
 
 <details>
-  <summary>Mostrar código</summary>
-  ![paso1](images/PIBDeflactor/Paso 1.png) 
+  <summary>Mostrar código fuente</summary>
+  ![paso1](images/PIBDeflactor/CodigoFuente2A.png)
 </details>
 
 
@@ -196,8 +209,11 @@ Tras ingresar el prompt, el código regresará tres elementos: ventana de result
   ![BASE](images/PIBDeflactor/Base De Datos.png) 
 
 
+[^1]: **Link:** [Banco de Indicadores](https://www.inegi.org.mx/app/indicadores/) 
 
-[^1]: El promedio geométrico se calcula desde el año seleccionado hasta el año actual. Este valor se usa para estimar el PIB del siguiente año, aplicando el crecimiento promedio geométrico obtenido. A medida que avanzan los años, la ventana del cálculo se ajusta, incorporando el año más reciente y descartando el más antiguo.
+[^2]: **Link:** [Bases de Datos CONAPO](https://www.gob.mx/conapo/articulos/reconstruccion-y-proyecciones-de-la-poblacion-de-los-municipios-de-mexico) 
+
+[^3]: El promedio geométrico se calcula desde el año seleccionado hasta el año actual. Este valor se usa para estimar el PIB del siguiente año, aplicando el crecimiento promedio geométrico obtenido. A medida que avanzan los años, la ventana del cálculo se ajusta, incorporando el año más reciente y descartando el más antiguo.
 
 
-[^2]: El cálculo se realiza desde el año seleccionado hasta el año actual para obtener una tasa de cambio promedio en los precios. Esta tasa se aplica para proyectar la inflación futura y ajustar el deflactor del PIB en los próximos años. La ventana de cálculo se ajusta dinámicamente año tras año, incorporando el dato más reciente y eliminando el más antiguo.
+[^4]: El cálculo se realiza desde el año seleccionado hasta el año actual para obtener una tasa de cambio promedio en los precios. Esta tasa se aplica para proyectar la inflación futura y ajustar el deflactor del PIB en los próximos años. La ventana de cálculo se ajusta dinámicamente año tras año, incorporando el dato más reciente y eliminando el más antiguo.

@@ -1,6 +1,6 @@
 # Simulador Fiscal CIEP v5.3: Población y proyecciones
 
-Versión: 19 de febrero de 2025
+Versión: 20 de febrero de 2025
 
 
 ---
@@ -10,6 +10,14 @@ Versión: 19 de febrero de 2025
 
 **Descripción:** *Ado-file* que automatiza la extracción de datos de las Proyecciones de la Población de México del CONAPO. 
 
+
+<details>
+  <summary>Indicadores de interés generados</summary>
+  
+  * **Población:** Muestra los datos de población históricos y su proyección hasta 2070.
+</details>
+
+
 ### 1. Input: 
 En este programa se integran 3 bases de datos de CONAPO:[^1]
 
@@ -17,10 +25,17 @@ En este programa se integran 3 bases de datos de CONAPO:[^1]
 2. Defunciones: Contiene la estimación de las defunciones anuales entre 1950 y 2070. 
 3. Migración Internacional: Contiene la estimación del número de inmigrantes y emigrantes internacionales entre 1950 y 2069.
 
+<details>
+  <summary>Ver código fuente</summary>
+  ![paso1](images/Poblacion/CodigoFuente1A.png)
+  ![paso1](images/Poblacion/CodigoFuente1B.png)
+  ![paso1](images/Poblacion/CodigoFuente1C.png)
+  ![paso1](images/Poblacion/CodigoFuente1D.png)
+
+</details>
 
 
 ### 2. Sintaxis:
-
 
 Para extraer datos, ingresa el prompt en la consola llamando al programa y selecciona los filtros y opciones deseados. 
 
@@ -70,7 +85,6 @@ El prompt sigue esta sintaxis:
   <option value="Zacatecas">Zacatecas</option>
 </select>
 
-
 <!-- Filtro: Sexo -->
 <label for="sexo">Sexo:</strong></label>
 <select id="sexo" onchange="actualizarComando()">
@@ -78,7 +92,9 @@ El prompt sigue esta sintaxis:
   <!-- Se asigna "1" para Hombres y "2" para Mujeres -->
   <option value="1">Hombres</option>
   <option value="2">Mujeres</option>
+  <option value=>Ambos</option>
 </select>
+
 
 **B. Opciones disponibles:**
 
@@ -86,20 +102,15 @@ El prompt sigue esta sintaxis:
 <label for="anioInicial">Año Inicial:</strong></label>
 <input type="number" id="anioInicial" placeholder="Escribe el año base" oninput="actualizarComando()">
 
-
 <label for="anioFinal">Año Final:</strong></label>
 <input type="number" id="anioFinal" placeholder="Escribe el año final" oninput="actualizarComando()">
-
-
 
 <!-- Opciones: NOGraphs y UPDATE -->
 <label for="noGraphs">Sin gráficos:</label>
 <input type="checkbox" id="noGraphs" onchange="actualizarComando()">
 
-
 <label for="update">Actualizar base:</label>
 <input type="checkbox" id="update" onchange="actualizarComando()">
-
 
 **Copia y pega este comando en la consola:**
 <pre id="codigoComando">Poblacion</pre>
@@ -119,33 +130,34 @@ El prompt sigue esta sintaxis:
     
     // Construye las condiciones sólo si se seleccionó alguna opción
     var condiciones = [];
-    if(estado) {
+    if (estado) {
        condiciones.push('entidad == "' + estado + '"');
     }
-    if(sexo) {
+    if (sexo) {
        condiciones.push('sexo == ' + sexo);
     }
-    if(condiciones.length > 0) {
+    
+    if (condiciones.length > 0) {
        comando += " if " + condiciones.join(" & ");
     }
     
     // Prepara opciones adicionales (después de la coma)
     var opciones = "";
-    if(anioInicial) {
+    if (anioInicial) {
        opciones += ' anioinicial(' + anioInicial + ')';
     }
-    if(anioFinal) {
+    if (anioFinal) {
        opciones += ' aniofinal(' + anioFinal + ')';
     }
-    if(noGraphs) {
+    if (noGraphs) {
        opciones += ' nographs';
     }
-    if(update) {
+    if (update) {
        opciones += ' update';
     }
     
     // Si se definió alguna opción, la agrega tras la coma
-    if(opciones.trim() !== "") {
+    if (opciones.trim() !== "") {
        comando += ',' + opciones;
     }
     
@@ -154,9 +166,10 @@ El prompt sigue esta sintaxis:
 </script>
 
 
+
 <details>
-  <summary>Mostrar código</summary>
-  ![paso1](images/Poblacion/Paso 11.png)
+  <summary>Ver código fuente</summary>
+  ![paso1](images/Poblacion/Paso 1.png)
 
 </details>
 
@@ -170,6 +183,11 @@ Tras ingresar el prompt, el código regresará tres elementos: ventana de result
 **1. Ventana de Resultados:** Muestra un resumen del análisis realizado. 
 
   ![resultados](images/Poblacion/Ventana de Resultados.png) 
+  
+  <details>
+  <summary>Ver código fuente</summary>
+  ![CodigoFuente2A](images/Poblacion/CodigoFuente2A.png)
+  </details>
 
 **2. Gráficas:** Representación visual de los indicadores calculados.
 
@@ -181,12 +199,10 @@ Tras ingresar el prompt, el código regresará tres elementos: ventana de result
 
 ![paso2](images/Poblacion/Base de Datos.png)
 
-### Revisar
-1. **Gráfica de la pirámide demográfica** por edades y para el año inicial y final.
-2. **Gráfica de la transición demográfica** por grupo de edades y años.
-
-![paso3a](images/Poblacion/P_2022_2050_Nacional.png)
-![paso3b](images/Poblacion/E_Nacional.png)
+<details>
+  <summary>Ver código fuente</summary>
+  ![CodigoFuente2A](images/Poblacion/CodigoFuente2C.png)
+ </details>
 
 
 
