@@ -1,22 +1,21 @@
-# Simulador Fiscal CIEP v5.3: PIB, deflactor y proyecciónes
+# Simulador Fiscal CIEP v5.3: PIB, deflactor y proyecciones
 
 Versión: 20 de Febrero de 2025
 
 
----
+<hr style="border: none; height: 2px; background-color: #ff7020;">
 
 ## PIBDeflactor.ado
 **Descripción**: *Ado-file* (`.ado`) diseñado para automatizar el cálculo y proyección de indicadores económicos utilizando datos del Banco de Información Económica (BIE) y el Consejo Nacional de Población (CONAPO). 
 
-Los indicadores se dividen en 3 categorías:
+Los indicadores se dividen en 3 temporalidades:
 
-* Datos históricos: Datos reales reportados desde 1993 hasta la fecha.
-* Estimaciones de CGPE: Datos estimados por la Secretaría de Hacienda desde la fecha actual hasta siete años en el futuro.
-* Proyecciones CIEP: Datos proyectados utilizando la metodología del CIEP con base en tendencias históricas. 
-
+* Datos históricos (naranja): datos reales reportados desde 1993 hasta la fecha.
+* Estimaciones de los CGPE (amarillo): datos estimados por la Secretaría de Hacienda desde la fecha actual hasta siete años en el futuro.
+* Proyecciones CIEP (verde): datos proyectados utilizando la metodología del CIEP con base en tendencias históricas. 
 
 <details>
-  <summary>Indicadores de interés generados</summary>
+  <summary>**Conoce la lista de indicadores generados**</summary>
 
 ---
 **1. Crecimiento Económico y Productividad**  
@@ -54,11 +53,16 @@ Los indicadores se dividen en 3 categorías:
 
 </details>
 
+**Ejemplo:**
+
+ ![ilustracion1](images/PIBDeflactor/ilustracion1.png)
 
 
-### 1. Input
 
-En este programa se utilizan 2 fuentes de datos:
+
+<h3 style="color: #ff7020;">1. Input:</h3>
+
+En este programa se utilizan dos fuentes de datos:
 
 1. BIE:  Proporciona datos sobre el PIB, el deflactor de precios, la inflación y el empleo. [^1] 
 
@@ -73,18 +77,17 @@ En este programa se utilizan 2 fuentes de datos:
   ![paso1](images/PIBDeflactor/CodigoFuente1C.png)
 </details>
 
-### 2. Sintaxis
+<h3 style="color: #ff7020;">2. Sintaxis:</h3>
 
 Para extraer los datos, es necesario ingresar el prompt en la consola siguiendo esta sintaxis:
 
 `PIBDeflactor [if] [, ANIOvp(int) ANIOMAX(int 2070)  GEOPIB(int) GEODEF(int) DIScount(real) NOGraphs UPDATE]`
 
-
-
-
 Para crear comandos de manera automática y evitar errores de sintaxis, utiliza nuestra calculadora de prompts.
 
-<h4 style="border-bottom: 2px solid black; display: inline-block;">Calculadora de Prompts</h4>
+<div style="text-align: center;">
+    <h4 style="border-bottom: 2px solid black; display: inline-block;">Calculadora de Prompts</h4>
+</div>
 
 **A. Opciones disponibles:**
 <!-- Opciones para PIBDeflactor -->
@@ -179,9 +182,9 @@ Para crear comandos de manera automática y evitar errores de sintaxis, utiliza 
 
 
 
-### 3. Output
+<h3 style="color: #ff7020;">3. Output:</h3>
 
-Tras ingresar el prompt, el código regresará tres elementos: ventana de resultados, cuatro gráficas y la base de datos. Podrás modificar el ado.file para obtener una base a tus necesidades.
+Tras ingresar el prompt, el código devolverá tres elementos: ventana de resultados, cuatro gráficas y la base de datos. Podrás modificar el ado.file para obtener una base a tus necesidades.
 
 **1. Ventana de Resultados:** Muestra un resumen del análisis realizado. 
 
@@ -203,9 +206,8 @@ Tras ingresar el prompt, el código regresará tres elementos: ventana de result
 ![INPC](images/PIBDeflactor/Indice Nacional De Precios al Consumidor.png)
 
 
-**3. Base de Datos:** Permite al usuario obtener una base recortada y limpia para hacer sus propios análisis.
+**3. Base de Datos:** Permite al usuario obtener una base de datos recortada y limpia para hacer sus propios análisis.
 
-  Ejemplo:
   ![BASE](images/PIBDeflactor/Base De Datos.png) 
 
 

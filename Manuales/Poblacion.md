@@ -3,7 +3,7 @@
 Versión: 20 de febrero de 2025
 
 
----
+<hr style="border: none; height: 2px; background-color: #ff7020;">
 
 
 ## Poblacion.ado
@@ -12,21 +12,22 @@ Versión: 20 de febrero de 2025
 
 
 <details>
-  <summary>Indicadores de interés generados</summary>
+  <summary>**Conoce la lista de indicadores de interés generados**</summary>
   
   * **Población:** Muestra los datos de población históricos y su proyección hasta 2070.
 </details>
 
 
-### 1. Input: 
-En este programa se integran 3 bases de datos de CONAPO:[^1]
+<h3 style="color: #ff7020;">1. Input:</h3>
+
+En este programa se integran tres bases de datos del CONAPO:[^1]
 
 1. Población: Contiene la estimación del número de habitantes a mitad de cada año entre 1950 y 2070.
 2. Defunciones: Contiene la estimación de las defunciones anuales entre 1950 y 2070. 
 3. Migración Internacional: Contiene la estimación del número de inmigrantes y emigrantes internacionales entre 1950 y 2069.
 
 <details>
-  <summary>Ver código fuente</summary>
+  <summary>Mostrar código fuente</summary>
   ![paso1](images/Poblacion/CodigoFuente1A.png)
   ![paso1](images/Poblacion/CodigoFuente1B.png)
   ![paso1](images/Poblacion/CodigoFuente1C.png)
@@ -35,12 +36,17 @@ En este programa se integran 3 bases de datos de CONAPO:[^1]
 </details>
 
 
-### 2. Sintaxis:
+<h3 style="color: #ff7020;">2. Sintaxis:</h3>
 
-Para extraer datos, ingresa el prompt en la consola llamando al programa y selecciona los filtros y opciones deseados. 
+Para extraer datos, ingresa el prompt en la consola llamando al programa y selecciona los filtros y opciones deseados. El prompt sigue esta sintaxis:
 
-El prompt sigue esta sintaxis:
 `Poblacion [if] [, ANIOinicial(int) ANIOFINAL(int) NOGraphs UPDATE]`
+
+Para crear comandos de manera automática y evitar errores de sintaxis, utiliza nuestra calculadora de prompts.
+
+<div style="text-align: center;">
+    <h4 style="border-bottom: 2px solid black; display: inline-block;">Calculadora de Prompts</h4>
+</div>
 
 **A. Filtros disponibles:**
 
@@ -88,7 +94,7 @@ El prompt sigue esta sintaxis:
 <!-- Filtro: Sexo -->
 <label for="sexo">Sexo:</strong></label>
 <select id="sexo" onchange="actualizarComando()">
-  <option value="" selected disabled>Selecciona el sexo</option>
+  <option value="" selected disabled>Selecciona un sexo</option>
   <!-- Se asigna "1" para Hombres y "2" para Mujeres -->
   <option value="1">Hombres</option>
   <option value="2">Mujeres</option>
@@ -168,7 +174,7 @@ El prompt sigue esta sintaxis:
 
 
 <details>
-  <summary>Ver código fuente</summary>
+  <summary>Mostrar código fuente</summary>
   ![paso1](images/Poblacion/Paso 1.png)
 
 </details>
@@ -176,16 +182,16 @@ El prompt sigue esta sintaxis:
 
 
 
-### 3. Output:
+<h3 style="color: #ff7020;">3. Output:</h3>
 
-Tras ingresar el prompt, el código regresará tres elementos: ventana de resultados, dos gráficas y la base de datos. Podrás modificar el ado.file para obtener una base a tus necesidades.
+Tras ingresar el prompt, el código devolverá tres elementos: ventana de resultados, dos gráficas y la base de datos. Podrás modificar el ado.file para obtener una base a tus necesidades.
 
 **1. Ventana de Resultados:** Muestra un resumen del análisis realizado. 
 
   ![resultados](images/Poblacion/Ventana de Resultados.png) 
   
   <details>
-  <summary>Ver código fuente</summary>
+  <summary>Mostrar código fuente</summary>
   ![CodigoFuente2A](images/Poblacion/CodigoFuente2A.png)
   </details>
 
@@ -200,7 +206,7 @@ Tras ingresar el prompt, el código regresará tres elementos: ventana de result
 ![paso2](images/Poblacion/Base de Datos.png)
 
 <details>
-  <summary>Ver código fuente</summary>
+  <summary>Mostrar código fuente</summary>
   ![CodigoFuente2A](images/Poblacion/CodigoFuente2C.png)
  </details>
 
