@@ -1,6 +1,6 @@
 # Simulador Fiscal CIEP v5.3: Población y proyecciones
 
-Versión: 20 de febrero de 2025
+Versión: 21 de febrero de 2025
 
 
 <hr style="border: none; height: 2px; background-color: #ff7020;">
